@@ -1,0 +1,39 @@
+python equipo-rojo-object-detection/equipo-rojo-object-detection/create_tf_record.py \
+    --label_map_path=equipo-rojo-object-detection/equipo-rojo-object-detection/label_map/label_map.pbtxt \
+    --data_dir=`pwd` \
+    --output_dir=`pwd`
+
+mkdir equipo-rojo-annotations; mkdir equipo-rojo-images; mkdir equipo-rojo-tf-record; mkdir equipo-rojo-annotations/xmls; mkdir equipo-rojo-training
+
+CUDA_VISIBLE_DEVICES=0 python object_detection/train.py \
+  --logtostderr \
+  --pipeline_config_path=equipo-rojo-object-detection/equipo-rojo-object-detection/configs/faster_rcnn_resnet101_rojo.config \
+  --train_dir=equipo-rojo-training/train
+python object_detection/train.py \
+  --logtostderr \
+  --pipeline_config_path=equipo-rojo-object-detection/equipo-rojo-object-detection/configs/faster_rcnn_resnet101_rojo.config \
+  --train_dir=equipo-rojo-training/train
+
+CUDA_VISIBLE_DEVICES=1 python object_detection/eval.py \
+  --logtostderr \
+  --pipeline_config_path=equipo-rojo-object-detection/equipo-rojo-object-detection/configs/faster_rcnn_resnet101_rojo.config \
+  --checkpoint_dir=equipo-rojo-training/train \
+  --eval_dir=equipo-rojo-training/eval
+
+tensorboard --port=6006 --logdir=equipo-rojo-training
+
+python object_detection/export_inference_graph.py \
+  --input_type image_tensor \
+  --pipeline_config_path=equipo-rojo-object-detection/equipo-rojo-object-detection/configs/faster_rcnn_resnet101_rojo.config \
+  --trained_checkpoint_prefix=equipo-rojo-training/train/model.ckpt-1222 \
+  --output_directory equipo-rojo-exported-graphs
+
+CUDA_VISIBLE_DEVICES=0 python2.7 object_detection/train.py \
+  --logtostderr \
+  --pipeline_config_path=equipo-rojo-object-detection/equipo-rojo-object-detection/configs/ssd_mobilenet_v2_coco.config \
+  --train_dir=equipo-rojo-training/train
+CUDA_VISIBLE_DEVICES=1 python2.7 object_detection/eval.py \
+  --logtostderr \
+  --pipeline_config_path=equipo-rojo-object-detection/equipo-rojo-object-detection/configs/ssd_mobilenet_v2_coco.config \
+  --checkpoint_dir=equipo-rojo-training/train \
+  --eval_dir=equipo-rojo-training/eval

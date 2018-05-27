@@ -1,0 +1,12 @@
+item {
+  id: 1
+  name: 'coke-12oz'
+}
+item {
+  id: 2
+  name: 'coke-zero-12oz'
+}
+item {
+  id: 3
+  name: 'coke-lite-12oz'
+}
